@@ -1,0 +1,9 @@
+#!/bin/bash
+
+DB_USER=roundcube
+DB_NAME=roundcube
+ROOT_PWD=$(sudo cat /etc/yunohost/mysql)
+
+mysql -u root -p$ROOT_PWD -e "DROP DATABASE $DB_NAME ; DROP USER $DB_USER ;"
+sudo rm -rf /var/www/roundcube
+sudo rm -f /etc/nginx/conf.d/*/roundcube.conf

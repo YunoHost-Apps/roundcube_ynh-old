@@ -1,0 +1,14 @@
+{
+    "name": "Roundcube",
+    "id": "roundcube",
+    "description": {
+        "en": "Open Source Webmail software",
+        "fr": "Webmail Open Source"
+    },
+    "developer": {
+        "name": "kload",
+        "email": "kload@kload.fr",
+        "url": "http://kload.fr"
+    },
+    "multi_instance": "true"
+}
