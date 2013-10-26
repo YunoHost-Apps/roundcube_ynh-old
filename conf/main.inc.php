@@ -805,7 +805,7 @@ $rcmail_config['logout_purge'] = false;
 $rcmail_config['logout_expunge'] = false;
 
 $main_domain = exec('cat /etc/yunohost/current_host');
-$rcmail_config['logout_url'] = 'https://'.$main_domain.'/sso/index.pl?logout=1';
+$rcmail_config['logout_url'] = 'https://'.$main_domain.'/ynhsso/?action=logout';
 
 // Display attached images below the message body 
 $rcmail_config['inline_images'] = true;
