@@ -60,4 +60,4 @@ fi
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/roundcube.conf
 
 sudo service nginx reload
-sudo yunohost domain ssowatconf
+sudo yunohost app ssowatconf
