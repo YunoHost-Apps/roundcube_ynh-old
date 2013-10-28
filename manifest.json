@@ -10,5 +10,21 @@
         "email": "kload@kload.fr",
         "url": "http://kload.fr"
     },
-    "multi_instance": "true"
+    "multi_instance": "true",
+    "arguments": {
+        "install" : [
+            {
+                "name": "domain",
+                "ask": {
+                    "en": "Choose a domain for Roundcube (i.e. mydomain.org)"
+                }
+            },
+            {
+                "name": "path",
+                "ask": {
+                    "en": "Choose a path for Roundcube (i.e. /webmail)"
+                }
+            }
+        ]
+    }
 }
