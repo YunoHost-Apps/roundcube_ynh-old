@@ -16,14 +16,17 @@
             {
                 "name": "domain",
                 "ask": {
-                    "en": "Choose a domain for Roundcube (i.e. mydomain.org)"
-                }
+                    "en": "Choose a domain for Roundcube"
+                },
+                "example": "domain.org"
             },
             {
                 "name": "path",
                 "ask": {
-                    "en": "Choose a path for Roundcube (i.e. /webmail)"
-                }
+                    "en": "Choose a path for Roundcube"
+                },
+                "example": "/webmail",
+                "default": "/webmail"
             }
         ]
     }
