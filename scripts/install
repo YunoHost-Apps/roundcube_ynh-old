@@ -26,6 +26,7 @@ final_path=/var/www/roundcube
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
 sudo cp ../conf/main.inc.php $final_path/config/
+sudo cp ../conf/main.inc.php $final_path/config/defaults.inc.php
 sudo cp ../conf/db.inc.php $final_path/config/
 sudo mv $final_path/plugins/managesieve/config.inc.php.dist $final_path/plugins/managesieve/config.inc.php
 
