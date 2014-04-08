@@ -37,47 +37,48 @@ function roundcube_browser()
   this.vendver = n.vendorSub ? parseFloat(n.vendorSub) : 0;
   this.product = n.product ? n.product : '';
   this.platform = String(n.platform).toLowerCase();
-  this.lang = (n.language) ? n.language.substring(0,2) :
-              (n.browserLanguage) ? n.browserLanguage.substring(0,2) :
-              (n.systemLanguage) ? n.systemLanguage.substring(0,2) : 'en';
+  this.lang = n.language ? n.language.substring(0,2) :
+              n.browserLanguage ? n.browserLanguage.substring(0,2) :
+              n.systemLanguage ? n.systemLanguage.substring(0,2) : 'en';
 
-  this.win = (this.platform.indexOf('win') >= 0);
-  this.mac = (this.platform.indexOf('mac') >= 0);
-  this.linux = (this.platform.indexOf('linux') >= 0);
-  this.unix = (this.platform.indexOf('unix') >= 0);
+  this.win = this.platform.indexOf('win') >= 0;
+  this.mac = this.platform.indexOf('mac') >= 0;
+  this.linux = this.platform.indexOf('linux') >= 0;
+  this.unix = this.platform.indexOf('unix') >= 0;
 
   this.dom = document.getElementById ? true : false;
-  this.dom2 = (document.addEventListener && document.removeEventListener);
+  this.dom2 = document.addEventListener && document.removeEventListener;
 
-  this.ie = (document.all && !window.opera);
-  this.ie4 = (this.ie && !this.dom);
-  this.ie5 = (this.dom && this.appver.indexOf('MSIE 5')>0);
-  this.ie8 = (this.dom && this.appver.indexOf('MSIE 8')>0);
-  this.ie9 = (this.dom && this.appver.indexOf('MSIE 9')>0);
-  this.ie7 = (this.dom && this.appver.indexOf('MSIE 7')>0);
-  this.ie6 = (this.dom && !this.ie8 && !this.ie7 && this.appver.indexOf('MSIE 6')>0);
+  this.webkit = this.agent_lc.indexOf('applewebkit') > 0;
+  this.ie = (document.all && !window.opera) || (this.win && this.agent_lc.indexOf('trident/') > 0);
 
-  this.ns = ((this.ver < 5 && this.name == 'Netscape') || (this.ver >= 5 && this.vendor.indexOf('Netscape') >= 0));
-  this.chrome = (this.agent_lc.indexOf('chrome') > 0);
-  this.safari = (!this.chrome && (this.agent_lc.indexOf('safari') > 0 || this.agent_lc.indexOf('applewebkit') > 0));
-  this.konq = (this.agent_lc.indexOf('konqueror') > 0);
-  this.mz = (this.dom && !this.ie && !this.ns && !this.chrome && !this.safari && !this.konq && this.agent.indexOf('Mozilla') >= 0);
-  this.iphone = (this.safari && (this.agent_lc.indexOf('iphone') > 0 || this.agent_lc.indexOf('ipod') > 0));
-  this.ipad = (this.safari && this.agent_lc.indexOf('ipad') > 0);
-  this.opera = window.opera ? true : false;
+  if (this.ie) {
+    this.ie6 = this.appver.indexOf('MSIE 6') > 0;
+    this.ie7 = this.appver.indexOf('MSIE 7') > 0;
+    this.ie8 = this.appver.indexOf('MSIE 8') > 0;
+    this.ie9 = this.appver.indexOf('MSIE 9') > 0;
+  }
+  else if (window.opera) {
+    this.opera = true;
+    this.vendver = opera.version();
+  }
+  else {
+    this.chrome = this.agent_lc.indexOf('chrome') > 0;
+    this.safari = !this.chrome && (this.webkit || this.agent_lc.indexOf('safari') > 0);
+    this.konq = this.agent_lc.indexOf('konqueror') > 0;
+    this.mz = this.dom && !this.chrome && !this.safari && !this.konq && this.agent.indexOf('Mozilla') >= 0;
+    this.iphone = this.safari && (this.agent_lc.indexOf('iphone') > 0 || this.agent_lc.indexOf('ipod') > 0);
+    this.ipad = this.safari && this.agent_lc.indexOf('ipad') > 0;
+  }
 
-  if (this.opera && window.RegExp)
-    this.vendver = (/opera(\s|\/)([0-9\.]+)/.test(this.agent_lc)) ? parseFloat(RegExp.$2) : -1;
-  else if (this.chrome && window.RegExp)
-    this.vendver = (/chrome\/([0-9\.]+)/.test(this.agent_lc)) ? parseFloat(RegExp.$1) : 0;
-  else if (!this.vendver && this.safari)
-    this.vendver = (/(safari|applewebkit)\/([0-9]+)/.test(this.agent_lc)) ? parseInt(RegExp.$2) : 0;
-  else if ((!this.vendver && this.mz) || this.agent.indexOf('Camino')>0)
-    this.vendver = (/rv:([0-9\.]+)/.test(this.agent)) ? parseFloat(RegExp.$1) : 0;
-  else if (this.ie && window.RegExp)
-    this.vendver = (/msie\s+([0-9\.]+)/.test(this.agent_lc)) ? parseFloat(RegExp.$1) : 0;
-  else if (this.konq && window.RegExp)
-    this.vendver = (/khtml\/([0-9\.]+)/.test(this.agent_lc)) ? parseFloat(RegExp.$1) : 0;
+  if (!this.vendver) {
+    // common version strings
+    this.vendver = /(opera|opr|khtml|chrome|safari|applewebkit|msie)(\s|\/)([0-9\.]+)/.test(this.agent_lc) ? parseFloat(RegExp.$3) : 0;
+
+    // any other (Mozilla, Camino, IE>=11)
+    if (!this.vendver)
+      this.vendver = /rv:([0-9\.]+)/.test(this.agent) ? parseFloat(RegExp.$1) : 0;
+  }
 
   // get real language out of safari's user agent
   if (this.safari && (/;\s+([a-z]{2})-[a-z]{2}\)/.test(this.agent_lc)))
@@ -86,11 +87,6 @@ function roundcube_browser()
   this.tablet = /ipad|android|xoom|sch-i800|playbook|tablet|kindle/i.test(this.agent_lc);
   this.mobile = /iphone|ipod|blackberry|iemobile|opera mini|opera mobi|mobile/i.test(this.agent_lc);
   this.touch = this.mobile || this.tablet;
-  this.dhtml = ((this.ie4 && this.win) || this.ie5 || this.ie6 || this.ns4 || this.mz);
-  this.vml = (this.win && this.ie && this.dom && !this.opera);
-  this.pngalpha = (this.mz || (this.opera && this.vendver >= 6) || (this.ie && this.mac && this.vendver >= 5) ||
-                   (this.ie && this.win && this.vendver >= 5.5) || this.safari);
-  this.opacity = (this.mz || (this.ie && this.vendver >= 5.5 && !this.opera) || (this.safari && this.vendver >= 100));
   this.cookies = n.cookieEnabled;
 
   // test for XMLHTTP support
@@ -124,7 +120,7 @@ function roundcube_browser()
       classname += ' iphone';
     else if (this.ipad)
       classname += ' ipad';
-    else if (this.safari || this.chrome)
+    else if (this.webkit)
       classname += ' webkit';
 
     if (this.mobile)
@@ -255,7 +251,7 @@ remove_listener: function(p)
 },
 
 /**
- * Prevent event propagation and bubbeling
+ * Prevent event propagation and bubbling
  */
 cancel: function(evt)
 {
@@ -293,7 +289,6 @@ rcube_event_engine.prototype = {
  *
  * @param {String}   Event name
  * @param {Function} Handler function
- * @return Listener ID (used to remove this handler later on)
  */
 addEventListener: function(evt, func, obj)
 {
@@ -302,8 +297,9 @@ addEventListener: function(evt, func, obj)
   if (!this._events[evt])
     this._events[evt] = [];
 
-  var e = {func:func, obj:obj ? obj : window};
-  this._events[evt][this._events[evt].length] = e;
+  this._events[evt].push({func:func, obj:obj ? obj : window});
+
+  return this; // chainable
 },
 
 /**
@@ -376,117 +372,6 @@ triggerEvent: function(evt, e)
 };  // end rcube_event_engine.prototype
 
 
-
-/**
- * Roundcube generic layer (floating box) class
- *
- * @constructor
- */
-function rcube_layer(id, attributes)
-{
-  this.name = id;
-
-  // create a new layer in the current document
-  this.create = function(arg)
-  {
-    var l = (arg.x) ? arg.x : 0,
-      t = (arg.y) ? arg.y : 0,
-      w = arg.width,
-      h = arg.height,
-      z = arg.zindex,
-      vis = arg.vis,
-      parent = arg.parent,
-      obj = document.createElement('DIV');
-
-    obj.id = this.name;
-    obj.style.position = 'absolute';
-    obj.style.visibility = (vis) ? (vis==2) ? 'inherit' : 'visible' : 'hidden';
-    obj.style.left = l+'px';
-    obj.style.top = t+'px';
-    if (w)
-	  obj.style.width = w.toString().match(/\%$/) ? w : w+'px';
-    if (h)
-	  obj.style.height = h.toString().match(/\%$/) ? h : h+'px';
-    if (z)
-      obj.style.zIndex = z;
-
-    if (parent)
-      parent.appendChild(obj);
-    else
-      document.body.appendChild(obj);
-
-    this.elm = obj;
-  };
-
-  // create new layer
-  if (attributes != null) {
-    this.create(attributes);
-    this.name = this.elm.id;
-  }
-  else  // just refer to the object
-    this.elm = document.getElementById(id);
-
-  if (!this.elm)
-    return false;
-
-
-  // ********* layer object properties *********
-
-  this.css = this.elm.style;
-  this.event = this.elm;
-  this.width = this.elm.offsetWidth;
-  this.height = this.elm.offsetHeight;
-  this.x = parseInt(this.elm.offsetLeft);
-  this.y = parseInt(this.elm.offsetTop);
-  this.visible = (this.css.visibility=='visible' || this.css.visibility=='show' || this.css.visibility=='inherit') ? true : false;
-
-
-  // ********* layer object methods *********
-
-  // move the layer to a specific position
-  this.move = function(x, y)
-  {
-    this.x = x;
-    this.y = y;
-    this.css.left = Math.round(this.x)+'px';
-    this.css.top = Math.round(this.y)+'px';
-  };
-
-  // change the layers width and height
-  this.resize = function(w,h)
-  {
-    this.css.width  = w+'px';
-    this.css.height = h+'px';
-    this.width = w;
-    this.height = h;
-  };
-
-  // show or hide the layer
-  this.show = function(a)
-  {
-    if(a == 1) {
-      this.css.visibility = 'visible';
-      this.visible = true;
-    }
-    else if(a == 2) {
-      this.css.visibility = 'inherit';
-      this.visible = true;
-    }
-    else {
-      this.css.visibility = 'hidden';
-      this.visible = false;
-    }
-  };
-
-  // write new content into a Layer
-  this.write = function(cont)
-  {
-    this.elm.innerHTML = cont;
-  };
-
-};
-
-
 // check if input is a valid email address
 // By Cal Henderson <cal@iamcal.com>
 // http://code.iamcal.com/php/rfc822/
@@ -541,7 +426,7 @@ function rcube_clone_object(obj)
 
   for (var key in obj) {
     if (obj[key] && typeof obj[key] === 'object')
-      out[key] = clone_object(obj[key]);
+      out[key] = rcube_clone_object(obj[key]);
     else
       out[key] = obj[key];
   }
@@ -702,6 +587,14 @@ Date.prototype.getStdTimezoneOffset = function()
   }
 
   return tzo;
+}
+
+// define String's startsWith() method for old browsers
+if (!String.prototype.startsWith) {
+  String.prototype.startsWith = function(search, position) {
+    position = position || 0;
+    return this.slice(position, search.length) === search;
+  };
 }
 
 // Make getElementById() case-sensitive on IE

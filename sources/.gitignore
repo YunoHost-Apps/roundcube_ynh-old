@@ -1,0 +1,15 @@
+# ignore files added to these directories
+logs/*
+temp/*
+config/*
+plugins/*/config.inc.php
+
+# this is for the sample plugin (via composer)
+plugins/rcsample
+plugins/plugin_manager
+
+# composer-related
+composer.json
+composer.phar
+composer.lock
+vendor
