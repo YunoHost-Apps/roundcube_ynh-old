@@ -26,11 +26,7 @@ sudo sed -i "s/yunobase/$db_user/g" $final_path/config/db.inc.php
 sudo chown -R www-data: $final_path
 
 sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
-if [[ "$path" == "/" ]]; then
-    sed -i "s@ALIASTOCHANGE@root $final_path@g" ../conf/nginx.conf
-else
-    sed -i "s@ALIASTOCHANGE@alias $final_path@g" ../conf/nginx.conf
-fi 
+sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/roundcube.conf
 
 sudo service nginx reload
