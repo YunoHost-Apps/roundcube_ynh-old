@@ -406,7 +406,7 @@ $rcmail_config['no_save_sent_messages'] = false;
 // ----------------------------------
 
 // List of active plugins (in plugins/ directory)
-$rcmail_config['plugins'] = array('http_authentication', 'archive', 'new_user_identity', 'managesieve');
+$rcmail_config['plugins'] = array('http_authentication', 'archive', 'new_user_identity', 'managesieve', 'markasjunk');
 
 // ----------------------------------
 // USER INTERFACE

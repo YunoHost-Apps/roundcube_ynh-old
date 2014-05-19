@@ -26,6 +26,7 @@ final_path=/var/www/roundcube
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
 sudo cp ../conf/main.inc.php $final_path/config/
+sudo cp ../conf/main.inc.php $final_path/config/defaults.inc.php
 sudo cp ../conf/db.inc.php $final_path/config/
 sudo mv $final_path/plugins/managesieve/config.inc.php.dist $final_path/plugins/managesieve/config.inc.php
 
@@ -43,6 +44,18 @@ sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
 sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
 sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/roundcube.conf
 
+sed -i "s@NAMETOCHANGE@roundcube@g" ../conf/php-fpm.conf
+finalphpconf=/etc/php5/fpm/pool.d/roundcube.conf
+sudo cp ../conf/php-fpm.conf $finalphpconf
+sudo chown root: $finalphpconf
+sudo chmod 644 $finalphpconf
+
+finalphpini=/etc/php5/fpm/conf.d/20-roundcube.ini
+sudo cp ../conf/php-fpm.ini $finalphpini
+sudo chown root: $finalphpini
+sudo chmod 644 $finalphpini
+
 # Reload Nginx and regenerate SSOwat conf
+sudo service php5-fpm restart
 sudo service nginx reload
 sudo yunohost app ssowatconf
