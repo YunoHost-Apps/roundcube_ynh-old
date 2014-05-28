@@ -1,0 +1,52 @@
+/**
+ * ContextMenu plugin styles
+ */
+
+.records-table tbody tr.contextRow td
+{
+  background-color: #F2F2F2;
+}
+
+#mailboxlist li.contextRow,
+#directorylist li.contextRow,
+#addresslist .contextRow,
+#contacts-table .contextRow
+{
+  background-color: #C7E3EF;
+}
+
+div.contextmenu a {
+  outline: 0;
+  cursor: default;
+}
+
+div.contextmenu ul li a span.cmicon
+{
+  background: url(images/contexticons.png) no-repeat 0 20px;
+}
+
+div.contextmenu ul li.submenu a span.cmicon
+{
+  background-position: right -192px;
+  padding-right: 18px;
+}
+
+div.contextmenu ul li a.reply span.cmicon
+{
+  background-position: 0 -122px;
+}
+
+div.contextmenu ul li a.delete span.cmicon
+{
+  background-position: 0 -96px;
+}
+
+div.contextmenu ul li a.compose span.cmicon
+{
+  background-position: 0 -281px;
+}
+
+div.contextmenu ul li a.removegroup span.cmicon
+{
+  background-position: 0 -347px;
+}
