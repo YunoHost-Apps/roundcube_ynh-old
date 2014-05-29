@@ -10,6 +10,8 @@ db_file=../sources/SQL/mysql/$(ls -tr -1 ../sources/SQL/mysql | head -1)
 
 mysql -u $db_user -p$db_pwd $db_user < $db_file
 
+mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/automatic_addressbook/SQL/mysql.initial.sql
+
 final_path=/var/www/roundcube
 sudo mkdir -p $final_path
 sudo cp -a ../sources/* $final_path
@@ -23,6 +25,7 @@ sudo sed -i "s/yunouser/$db_user/g" $final_path/config/db.inc.php
 sudo sed -i "s/yunopass/$db_pwd/g" $final_path/config/db.inc.php
 sudo sed -i "s/yunobase/$db_user/g" $final_path/config/db.inc.php
 
+sudo mkdir -p $final_path/logs
 sudo chown -R www-data: $final_path
 
 sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf

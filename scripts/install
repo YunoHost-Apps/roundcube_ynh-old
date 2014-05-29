@@ -21,6 +21,8 @@ db_user=roundcube
 sudo yunohost app initdb $db_user -p $db_pwd -s $(readlink -e ../sources/SQL/mysql.initial.sql)
 sudo yunohost app setting roundcube mysqlpwd -v $db_pwd
 
+mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/automatic_addressbook/SQL/mysql.initial.sql
+
 # Copy files to the right place
 final_path=/var/www/roundcube
 sudo mkdir -p $final_path
@@ -37,6 +39,7 @@ sudo sed -i "s/yunopass/$db_pwd/g" $final_path/config/db.inc.php
 sudo sed -i "s/yunobase/$db_user/g" $final_path/config/db.inc.php
 
 # Set permissions to roundcube directory
+sudo mkdir -p $final_path/logs
 sudo chown -R www-data: $final_path
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
