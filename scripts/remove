@@ -8,3 +8,8 @@ domain=$(sudo yunohost app setting roundcube domain)
 mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
 sudo rm -rf /var/www/roundcube
 sudo rm -f /etc/nginx/conf.d/$domain.d/roundcube.conf
+sudo rm -f /etc/php5/fpm/pool.d/roundcube.conf
+sudo rm -f /etc/php5/fpm/conf.d/20-roundcube.ini
+
+sudo service php5-fpm restart
+sudo service nginx reload
