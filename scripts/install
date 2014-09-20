@@ -53,8 +53,10 @@ if [ "$?" -eq 0 ]; then
 
   sudo sed -i "s@yuno_enable_carddav@True@g" $final_path/config/main.inc.php
 
+  mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/carddav/dbinit/mysql-drop.sql
   mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/carddav/dbinit/mysql.sql
 else
+  mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/carddav/dbinit/mysql-drop.sql
   sudo sed -i "s@yuno_enable_carddav@False@g" $final_path/config/main.inc.php
 fi
 
