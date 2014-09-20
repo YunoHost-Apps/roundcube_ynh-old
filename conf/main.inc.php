@@ -408,6 +408,10 @@ $rcmail_config['no_save_sent_messages'] = false;
 // List of active plugins (in plugins/ directory)
 $rcmail_config['plugins'] = array('http_authentication', 'archive', 'new_user_identity', 'managesieve', 'markasjunk', 'new_user_dialog', 'contextmenu', 'automatic_addressbook');
 
+if (yuno_enable_carddav) {
+  array_push($rcmail_config['plugins'], 'carddav');
+}
+
 // ----------------------------------
 // USER INTERFACE
 // ----------------------------------
