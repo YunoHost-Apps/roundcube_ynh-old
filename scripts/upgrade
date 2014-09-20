@@ -25,6 +25,26 @@ sudo sed -i "s/yunouser/$db_user/g" $final_path/config/db.inc.php
 sudo sed -i "s/yunopass/$db_pwd/g" $final_path/config/db.inc.php
 sudo sed -i "s/yunobase/$db_user/g" $final_path/config/db.inc.php
 
+# Install rcmcarddav if baikal is detected
+sudo yunohost app list -f baikal --json | grep '"installed": true'
+if [ "$?" -eq 0 ]; then
+  echo "Detected Baikal"
+
+  caldavdomain=$(sudo yunohost app setting baikal domain)
+  caldavpath=$(sudo yunohost app setting baikal path)
+  caldavpath=${caldavpath%/}
+
+  sed -i "s@yuno_baikal_domain@$caldavdomain@g" ../conf/rcmcarddav.config.inc.php
+  sed -i "s@yuno_baikal_path@$caldavpath@g" ../conf/rcmcarddav.config.inc.php
+  sudo cp ../conf/rcmcarddav.config.inc.php $final_path/plugins/carddav/config.inc.php
+
+  sudo sed -i "s@yuno_enable_carddav@True@g" $final_path/config/main.inc.php
+
+  mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/carddav/dbinit/mysql.sql
+else
+  sudo sed -i "s@yuno_enable_carddav@False@g" $final_path/config/main.inc.php
+fi
+
 sudo mkdir -p $final_path/logs
 sudo chown -R www-data: $final_path
 
