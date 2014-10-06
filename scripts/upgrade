@@ -60,11 +60,6 @@ sudo cp ../conf/php-fpm.conf $finalphpconf
 sudo chown root: $finalphpconf
 sudo chmod 644 $finalphpconf
 
-finalphpini=/etc/php5/fpm/conf.d/20-roundcube.ini
-sudo cp ../conf/php-fpm.ini $finalphpini
-sudo chown root: $finalphpini
-sudo chmod 644 $finalphpini
-
 sudo service php5-fpm restart
 sudo service nginx reload
 sudo yunohost app ssowatconf
