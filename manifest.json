@@ -5,6 +5,7 @@
         "en": "Open Source Webmail software",
         "fr": "Webmail Open Source"
     },
+    "licence": "GPL",
     "developer": {
         "name": "kload",
         "email": "kload@kload.fr",
