@@ -1,0 +1,10 @@
+#!/bin/bash
+
+backup_dir=$1/apps/roundcube
+mkdir -p $backup_dir
+
+sudo cp -a /var/www/roundcube/. $backup_dir/sources
+sudo cp -a /etc/php5/fpm/pool.d/roundcube.conf $backup_dir/php-fpm.conf
+
+db_pwd=$(sudo yunohost app setting roundcube mysqlpwd)
+sudo mysqldump -u roundcube -p"$db_pwd" roundcube > $backup_dir/dump.sql
