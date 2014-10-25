@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # The parameter $1 is the uncompressed restore directory location
-$backup_dir=$1/apps/roundcube
+backup_dir=$1/apps/roundcube
 
 sudo cp -a $backup_dir/sources/. /var/www/roundcube
 sudo cp -a $backup_dir/php-fpm.conf /etc/php5/fpm/pool.d/roundcube.conf
