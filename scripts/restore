@@ -7,7 +7,7 @@ sudo cp -a $backup_dir/sources/. /var/www/roundcube
 sudo cp -a $backup_dir/php-fpm.conf /etc/php5/fpm/pool.d/roundcube.conf
 
 db_pwd=$(sudo yunohost app setting roundcube mysqlpwd)
-sudo yunohost initdb roundcube -p "$db_pwd" -s $backup_dir/dump.sql
+sudo yunohost app initdb roundcube -p "$db_pwd" -s $backup_dir/dump.sql
 
 sudo service php5-fpm restart
 sudo service nginx restart
