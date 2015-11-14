@@ -143,19 +143,19 @@ $rcmail_config['messages_cache'] = false;
 // %d - domain (http hostname $_SERVER['HTTP_HOST'] without the first part)
 // %z - IMAP domain (IMAP hostname without the first part)
 // For example %n = mail.domain.tld, %t = domain.tld
-$rcmail_config['smtp_server'] = '';
+$rcmail_config['smtp_server'] = 'ssl://%n';
 
 // SMTP port (default is 25; use 587 for STARTTLS or 465 for the
 // deprecated SSL over SMTP (aka SMTPS))
-$rcmail_config['smtp_port'] = 25;
+$rcmail_config['smtp_port'] = 465;
 
 // SMTP username (if required) if you use %u as the username Roundcube
 // will use the current username for login
-$rcmail_config['smtp_user'] = '';
+$rcmail_config['smtp_user'] = '%u';
 
 // SMTP password (if required) if you use %p as the password Roundcube
 // will use the current user's password for login
-$rcmail_config['smtp_pass'] = '';
+$rcmail_config['smtp_pass'] = '%p';
 
 // SMTP AUTH type (DIGEST-MD5, CRAM-MD5, LOGIN, PLAIN or empty to use
 // best server supported one)
