@@ -243,7 +243,7 @@ $rcmail_config['skin_include_php'] = false;
 $rcmail_config['display_version'] = false;
 
 // Session lifetime in minutes
-$rcmail_config['session_lifetime'] = 10;
+$rcmail_config['session_lifetime'] = 1440;
 
 // Session domain: .example.org
 $rcmail_config['session_domain'] = '';
