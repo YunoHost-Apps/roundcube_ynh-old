@@ -16,6 +16,7 @@
         "php5-fpm",
         "mysql"
     ],
+    "min_version": "2.3.3",
     "arguments": {
         "install" : [
             {

@@ -5,7 +5,7 @@
  | bin/installto.sh                                                      |
  |                                                                       |
  | This file is part of the Roundcube Webmail client                     |
- | Copyright (C) 2012, The Roundcube Dev Team                            |
+ | Copyright (C) 2014, The Roundcube Dev Team                            |
  |                                                                       |
  | Licensed under the GNU General Public License version 3 or            |
  | any later version with exceptions for skins & plugins.                |
@@ -19,11 +19,20 @@
  +-----------------------------------------------------------------------+
 */
 
-define('INSTALL_PATH', realpath(dirname(__FILE__) . '/..') . '/' );
+define('INSTALL_PATH', realpath(__DIR__ . '/..') . '/' );
 
 require_once INSTALL_PATH . 'program/include/clisetup.php';
 
 $target_dir = unslashify($_SERVER['argv'][1]);
+
+$interaction = true;
+$force_update = false;
+if (count($_SERVER['argv']) > 2) {
+  if (in_array('--no-interaction', $_SERVER['argv']))
+    $interaction = false;
+  if (in_array('--force', $_SERVER['argv']))
+    $force_update = true;
+}
 
 if (empty($target_dir) || !is_dir(realpath($target_dir)))
   rcube::raise_error("Invalid target: not a directory\nUsage: installto.sh <TARGET>", false, true);
@@ -35,22 +44,30 @@ if (!preg_match('/define\(.RCMAIL_VERSION.,\s*.([0-9.]+[a-z-]*)/', $iniset, $m))
 
 $oldversion = $m[1];
 
-if (version_compare(version_parse($oldversion), version_parse(RCMAIL_VERSION), '>='))
+if (!$force_update && version_compare(version_parse($oldversion), version_parse(RCMAIL_VERSION), '>='))
   rcube::raise_error("Installation at target location is up-to-date!", false, true);
 
-echo "Upgrading from $oldversion. Do you want to continue? (y/N)\n";
-$input = trim(fgets(STDIN));
+if ($interaction) {
+  echo "Upgrading from $oldversion. Do you want to continue? (y/N)\n";
+  $input = trim(fgets(STDIN));
+}
+else
+  $input = 'y';
 
 if (strtolower($input) == 'y') {
   $err = false;
   echo "Copying files to target location...";
-  foreach (array('program','installer','bin','SQL','plugins','skins') as $dir) {
+  $dirs = array('program','installer','bin','SQL','plugins','skins');
+  if (is_dir(INSTALL_PATH . 'vendor') && !is_file(INSTALL_PATH . 'composer.json')) {
+    $dirs[] = 'vendor';
+  }
+  foreach ($dirs as $dir) {
     if (!system("rsync -avC " . INSTALL_PATH . "$dir/* $target_dir/$dir/")) {
       $err = true;
       break;
     }
   }
-  foreach (array('index.php','.htaccess','config/defaults.inc.php','CHANGELOG','README.md','UPGRADING','LICENSE') as $file) {
+  foreach (array('index.php','.htaccess','config/defaults.inc.php','composer.json-dist','CHANGELOG','README.md','UPGRADING','LICENSE','INSTALL') as $file) {
     if (!system("rsync -av " . INSTALL_PATH . "$file $target_dir/$file")) {
       $err = true;
       break;

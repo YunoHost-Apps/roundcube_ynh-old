@@ -1,14 +1,28 @@
 #!/bin/bash
 
-db_user=roundcube
-db_name=roundcube
-root_pwd=$(sudo cat /etc/yunohost/mysql)
-domain=$(sudo yunohost app setting roundcube domain)
+# Load common variables and helpers
+. ./_common.sh
 
-mysql -u root -p$root_pwd -e "DROP DATABASE $db_name ; DROP USER $db_user@localhost ;"
-sudo rm -rf /var/www/roundcube
-sudo rm -f /etc/nginx/conf.d/$domain.d/roundcube.conf
-sudo rm -f /etc/php5/fpm/pool.d/roundcube.conf
+# Set app specific variables
+app=$1
+dbname=$app
+dbuser=$app
 
-sudo service php5-fpm restart
-sudo service nginx reload
+# Source app helpers
+. /usr/share/yunohost/apps/helpers
+
+# Drop MySQL database and user
+ynh_mysql_drop_db $dbname || true
+ynh_mysql_drop_user $dbuser || true
+
+# Retrieve domain from app settings
+domain=$(ynh_app_setting_get $app domain)
+
+# Delete app directory and configurations
+sudo rm -rf "/var/www/${app}"
+sudo rm -f "/etc/php5/fpm/pool.d/${app}.conf"
+[[ -n $domain ]] && sudo rm -f "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+
+# Reload services and regenerate SSOwat conf
+sudo service php5-fpm restart || true
+sudo service nginx reload || true
