@@ -12,6 +12,8 @@ report issues and/or improvements!**
 
  * Ask for rcmcarddav installation and/or check if *Baikal* is installed.
  * Update backup/restore scripts.
+ * Improve installation and upgrade since composer take a long time
+   expecially when fetching repositories.
  * ...
 
 ## Links ##
