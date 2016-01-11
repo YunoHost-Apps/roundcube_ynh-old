@@ -1,18 +1,64 @@
 #!/bin/bash
+# This restore script is adapted to Yunohost >=2.4
 
-# The parameter $1 is the uncompressed restore directory location
-backup_dir=$1/apps/roundcube
+# The parameter $1 is the backup directory location dedicated to the app
+backup_dir=$1
 
-sudo cp -a $backup_dir/sources/. /var/www/roundcube
-sudo cp -a $backup_dir/php-fpm.conf /etc/php5/fpm/pool.d/roundcube.conf
+# The parameter $2 is the id of the app instance ex: ynhexample__2
+app=$2
 
-db_pwd=$(sudo yunohost app setting roundcube mysqlpwd)
-sudo yunohost app initdb roundcube -p "$db_pwd" -s $backup_dir/dump.sql
+# Get old parameter of the app
+domain=$(sudo yunohost app setting $app domain)
+path=$(sudo yunohost app setting $app path)
 
-# Copy Nginx and YunoHost parameters to make the script "standalone"
-sudo cp -a $backup_dir/yunohost/. /etc/yunohost/apps/roundcube
-domain=$(sudo yunohost app setting roundcube domain)
-sudo cp -a $backup_dir/nginx.conf /etc/nginx/conf.d/$domain.d/roundcube.conf
+# Check domain/path availability
+sudo yunohost app checkurl $domain$path -a $app
+if [[ ! $? -eq 0 ]]; then
+    echo "There is already an app on this URL : $domain$path" | sudo tee /dev/stderr
+    exit 1
+fi
 
+final_path=/var/www/$app
+if [ -d $final_path ]; then
+    echo "There is already a directory: $final_path " | sudo tee /dev/stderr
+    exit 1
+fi
+
+conf=/etc/nginx/conf.d/$domain.d/$app.conf
+if [ -f $conf ]; then
+    echo "There is already a nginx conf file at this path: $conf " | sudo tee /dev/stderr
+    exit 1
+fi
+
+phpconf=/etc/php5/fpm/pool.d/$app.conf
+if [ -f $phpconf ]; then
+    echo "There is already a php conf file at this path: $conf " | sudo tee /dev/stderr
+    exit 1
+fi
+
+# Restore sources & data
+sudo cp -a "${backup_dir}/sources" $final_path
+
+. /usr/share/yunohost/apps/helpers
+db_pwd=$(sudo yunohost app setting $app mysqlpwd)
+db_user=$app
+sudo yunohost app initdb $db_user -p $db_pwd
+#ynh_mysql_create_db $app $db_user $db_pwd
+sudo su -c "mysql -u $db_user -p$db_pwd $app < ${backup_dir}/dump.sql"
+sudo sed -i -e "s/'mysql:\/\/[^:]*:[^@]*@localhost/[^']*'/'mysql:\/\/$app:$db_pwd@localhost/$app'/g" $final_path/config/db.inc.php
+
+# Set permissions
+sudo chown -R www-data:www-data $final_path
+
+# Restore conf files
+sudo cp -a "${backup_dir}/nginx.conf" $conf
+sudo cp -a "${backup_dir}/php-fpm.conf" $phpconf
+sudo chown root: $phpconf
+sudo chmod 644 $phpconf
+
+# Reload Nginx
 sudo service php5-fpm restart
-sudo service nginx restart
+sudo service nginx reload
+
+# Set ssowat config
+sudo yunohost app ssowatconf

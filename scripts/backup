@@ -1,17 +1,24 @@
 #!/bin/bash
 
-# The parameter $1 is the backup directory location
+# The parameter $1 is the backup directory location dedicated to the app
 # which will be compressed afterward
-backup_dir=$1/apps/roundcube
-mkdir -p $backup_dir
+backup_dir=$1
 
-sudo cp -a /var/www/roundcube/. $backup_dir/sources
-sudo cp -a /etc/php5/fpm/pool.d/roundcube.conf $backup_dir/php-fpm.conf
+# The parameter $2 is theid of the app instance
+app=$2
 
-db_pwd=$(sudo yunohost app setting roundcube mysqlpwd)
-sudo mysqldump -u roundcube -p"$db_pwd" roundcube > $backup_dir/dump.sql
+domain=$(sudo yunohost app setting $app domain)
+path=$(sudo yunohost app setting $app path)
 
-# Copy Nginx and YunoHost parameters to make the script "standalone"
-sudo cp -a /etc/yunohost/apps/roundcube/. $backup_dir/yunohost
-domain=$(sudo yunohost app setting roundcube domain)
-sudo cp -a /etc/nginx/conf.d/$domain.d/roundcube.conf $backup_dir/nginx.conf
+# Copy the app files
+final_path=/var/www/$app
+sudo mkdir -p ${backup_dir}/var/www
+sudo cp -a $final_path "${backup_dir}/sources"
+
+# Copy the conf files
+sudo cp -a /etc/php5/fpm/pool.d/$app.conf $backup_dir/php-fpm.conf
+sudo cp -a /etc/nginx/conf.d/$domain.d/$app.conf $backup_dir/nginx.conf
+
+# Backup db
+db_pwd=$(sudo yunohost app setting $app mysqlpwd)
+sudo su -c "mysqldump -u $app -p"$db_pwd" --no-create-db $app > ${backup_dir}/dump.sql"
