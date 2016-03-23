@@ -16,7 +16,9 @@
         "php5-fpm",
         "mysql"
     ],
-    "min_version": "2.3.3",
+    "requirements": {
+        "yunohost": ">= 2.3.10"
+    },
     "arguments": {
         "install" : [
             {

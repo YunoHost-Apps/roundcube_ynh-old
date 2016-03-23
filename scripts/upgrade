@@ -11,7 +11,7 @@ dbname=$app
 dbuser=$app
 
 # Source app helpers
-. /usr/share/yunohost/apps/helpers
+. /usr/share/yunohost/helpers
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get $app domain)

@@ -9,7 +9,7 @@ dbname=$app
 dbuser=$app
 
 # Source app helpers
-. /usr/share/yunohost/apps/helpers
+. /usr/share/yunohost/helpers
 
 # Drop MySQL database and user
 ynh_mysql_drop_db $dbname || true
@@ -23,6 +23,6 @@ sudo rm -rf "/var/www/${app}"
 sudo rm -f "/etc/php5/fpm/pool.d/${app}.conf"
 [[ -n $domain ]] && sudo rm -f "/etc/nginx/conf.d/${domain}.d/${app}.conf"
 
-# Reload services and regenerate SSOwat conf
+# Reload services
 sudo service php5-fpm restart || true
 sudo service nginx reload || true

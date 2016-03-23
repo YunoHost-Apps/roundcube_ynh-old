@@ -15,7 +15,7 @@ dbname=$app
 dbuser=$app
 
 # Source app helpers
-. /usr/share/yunohost/apps/helpers
+. /usr/share/yunohost/helpers
 
 # TODO: Check domain/path availability with app helper
 sudo yunohost app checkurl $domain$path -a $app \
@@ -35,13 +35,12 @@ install_with_composer "$TMPDIR"
 deskey=$(ynh_string_random 24)
 dbpass=$(ynh_string_random)
 
-# Initialize database and store mysql password for upgrade
+# Initialize database
 ynh_mysql_create_db $dbname $dbuser $dbpass
 ynh_mysql_connect_as $dbuser $dbpass $dbname \
     < "${TMPDIR}/SQL/mysql.initial.sql"
 ynh_mysql_connect_as $dbuser $dbpass $dbname \
     < "${TMPDIR}/plugins/automatic_addressbook/SQL/mysql.initial.sql"
-ynh_app_setting_set $app mysqlpwd $dbpass
 
 # Copy and set Roundcube configuration
 rc_conf="${TMPDIR}/config/config.inc.php"
@@ -91,6 +90,9 @@ sed -i "s@#DESTDIR#@${DESTDIR}/@g" ../conf/php-fpm.conf
 sudo cp ../conf/php-fpm.conf "$phpfpm_conf"
 sudo chown root: $phpfpm_conf
 sudo chmod 644 $phpfpm_conf
+
+# Save app settings
+ynh_app_setting_set $app mysqlpwd $dbpass
 
 # Reload services
 sudo service php5-fpm restart || true
