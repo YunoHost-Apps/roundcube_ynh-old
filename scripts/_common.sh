@@ -5,6 +5,9 @@
 # Roundcube version
 VERSION=1.1.4
 
+# Roundcube complete tarball checksum
+ROUNDCUBE_COMPLETE_MD5="260686b4894896744bffa2d8bb259995"
+
 # Remote URL to fetch Roundcube complete tarball
 ROUNDCUBE_COMPLETE_URL="https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/${VERSION}/roundcubemail-${VERSION}-complete.tar.gz"
 
@@ -29,9 +32,10 @@ extract_roundcube() {
 
   # retrieve and extract Roundcube tarball
   rc_tarball="${DESTDIR}/roundcube.tar.gz"
-#  wget -q -O "$rc_tarball" "$ROUNDCUBE_COMPLETE_URL" \
-  cp /home/admin/roundcube.tar.gz "$rc_tarball" \
+  wget -q -O "$rc_tarball" "$ROUNDCUBE_COMPLETE_URL" \
     || die "Unable to download Roundcube tarball"
+  echo "$ROUNDCUBE_COMPLETE_MD5 $rc_tarball" | md5sum -c >/dev/null \
+    || die "Invalid checksum of downloaded tarball"
   tar xf "$rc_tarball" -C "$DESTDIR" --strip-components 1 \
     || die "Unable to extract Roundcube tarball"
   rm "$rc_tarball"
