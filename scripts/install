@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -u
 
 # Retrieve arguments
 domain=$1
@@ -29,7 +30,8 @@ DESTDIR="/var/www/$app"
 
 # Create tmp directory and install app inside
 TMPDIR=$(ynh_mkdir_tmp)
-install_with_composer "$TMPDIR"
+extract_roundcube "$TMPDIR"
+init_composer "$TMPDIR"
 
 # Generate random DES key & password
 deskey=$(ynh_string_random 24)
@@ -39,8 +41,6 @@ dbpass=$(ynh_string_random)
 ynh_mysql_create_db $dbname $dbuser $dbpass
 ynh_mysql_connect_as $dbuser $dbpass $dbname \
     < "${TMPDIR}/SQL/mysql.initial.sql"
-ynh_mysql_connect_as $dbuser $dbpass $dbname \
-    < "${TMPDIR}/plugins/automatic_addressbook/SQL/mysql.initial.sql"
 
 # Copy and set Roundcube configuration
 rc_conf="${TMPDIR}/config/config.inc.php"
@@ -54,6 +54,14 @@ sed -i "s/#DBNAME#/${dbname}/g" "$rc_conf"
 sudo mv "$TMPDIR" "$DESTDIR"
 sudo mkdir -p "${DESTDIR}/logs" "${DESTDIR}/temp"
 sudo chown -R www-data: "$DESTDIR"
+
+# Install additional plugins
+exec_composer "$DESTDIR" www-data require "johndoh/contextmenu dev-release-2.1"
+exec_composer "$DESTDIR" www-data require "sblaisot/automatic_addressbook"
+
+# Install other plugins manually
+sudo cp -r ../sources/plugins/ldapAliasSync "${DESTDIR}/plugins"
+sudo chown -R www-data: "${DESTDIR}/plugins/ldapAliasSync"
 
 ## Install rcmcarddav TODO: if baikal is detected
 #sudo yunohost app list -f baikal --json | grep '"installed": true'

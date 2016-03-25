@@ -8,39 +8,68 @@ VERSION=1.1.4
 # Remote URL to fetch Roundcube complete tarball
 ROUNDCUBE_COMPLETE_URL="https://downloads.sourceforge.net/project/roundcubemail/roundcubemail/${VERSION}/roundcubemail-${VERSION}-complete.tar.gz"
 
-# Remote URL to fetch Roundcube source tarball
-ROUNDCUBE_SOURCE_URL="https://github.com/roundcube/roundcubemail/releases/download/${VERSION}/roundcubemail-${VERSION}.tar.gz"
+# App package root directory should be the parent folder
+PKGDIR=$(cd ../; pwd)
 
 #
 # Common helpers
 #
 
 # Print a message to stderr and exit
+# usage: print MSG [RETCODE]
 die() {
   printf "%s" "$1" 1>&2
   exit "${2:-1}"
 }
 
-# Download and install the app in a given directory with composer
-install_with_composer() {
-  DIR=$1
+# Download and extract Roundcube sources to the given directory
+# usage: extract_roundcube_to DESTDIR
+extract_roundcube() {
+  local DESTDIR=$1
 
-  # Retrieve and extract Roundcube tarball
-  rc_tarball="${DIR}/roundcube.tar.gz"
-  wget -q -O "$rc_tarball" "$ROUNDCUBE_SOURCE_URL" \
+  # retrieve and extract Roundcube tarball
+  rc_tarball="${DESTDIR}/roundcube.tar.gz"
+#  wget -q -O "$rc_tarball" "$ROUNDCUBE_COMPLETE_URL" \
+  cp /home/admin/roundcube.tar.gz "$rc_tarball" \
     || die "Unable to download Roundcube tarball"
-  tar xf "$rc_tarball" -C "$DIR" --strip-components 1 \
+  tar xf "$rc_tarball" -C "$DESTDIR" --strip-components 1 \
     || die "Unable to extract Roundcube tarball"
   rm "$rc_tarball"
 
-  # Install dependencies using composer
-  cp ../sources/composer.json* "$DIR"
-  curl -sS https://getcomposer.org/installer \
-    | php -- --quiet --install-dir="$DIR" \
-    || die "Unable to install Composer"
-  (cd "$DIR" && php composer.phar install --quiet -n --no-dev) \
-    || die "Unable to install Roundcube dependencies"
+  # TODO: apply patches
+}
 
-  # Install other dependencies manually
-  cp -r ../sources/plugins/ldapAliasSync "${DIR}/plugins"
+# Execute a composer command from a given directory
+# usage: composer_exec WORKDIR AS_USER COMMAND [ARG ...]
+exec_composer() {
+  local WORKDIR=$1
+  local AS_USER=$2
+  shift 2
+
+  if [[ $AS_USER = $(whoami) ]]; then
+    php "${WORKDIR}/composer.phar" $@ \
+      -d "${WORKDIR}" --quiet --no-interaction
+  else
+    # use sudo twice to be root and be allowed to use another user
+    sudo sudo -u "$AS_USER" php "${WORKDIR}/composer.phar" $@ \
+      -d "${WORKDIR}" --quiet --no-interaction
+  fi
+}
+
+# Install and initialize Composer in the given directory
+# usage: init_composer DESTDIR
+init_composer() {
+  local DESTDIR=$1
+
+  # install composer
+  curl -sS https://getcomposer.org/installer \
+    | php -- --quiet --install-dir="$DESTDIR" \
+    || die "Unable to install Composer"
+
+  # copy composer.json for Roundcube with complete dependencies
+  cp "${PKGDIR}/conf/rc-complete_composer.json" "${DESTDIR}/composer.json"
+
+  # update dependencies to create composer.lock
+  exec_composer "$DESTDIR" admin update --no-dev \
+    || die "Unable to update Roundcube core dependencies"
 }
