@@ -1,12 +1,13 @@
 #!/bin/bash
 
 set -e
+set -u
 
 # Load common variables and helpers
 . ./_common.sh
 
 # Set app specific variables
-app=$1
+app=${!#}
 dbname=$app
 dbuser=$app
 
@@ -26,26 +27,44 @@ DESTDIR="/var/www/$app"
 
 # Create tmp directory and install app inside
 TMPDIR=$(ynh_mkdir_tmp)
-install_with_composer "$TMPDIR"
-cp ../sources/bin/installto.sh "${TMPDIR}/bin/"
+extract_roundcube "$TMPDIR"
+
+# Install the new Roundcube version
+sudo php "${TMPDIR}/bin/installto.sh" "$DESTDIR" --force --accept \
+  || die "Unable to update Roundcube installation"
+rm -rf "$TMPDIR"
 
 # Generate a new random DES key
 deskey=$(ynh_string_random 24)
 
 # Copy and set Roundcube configuration
-rc_conf="${TMPDIR}/config/config.inc.php"
-cp ../conf/config.inc.php "$rc_conf"
-sed -i "s/#DESKEY#/${deskey}/g" "$rc_conf"
-sed -i "s/#DBUSER#/${dbuser}/g" "$rc_conf"
-sed -i "s/#DBPASS#/${dbpass}/g" "$rc_conf"
-sed -i "s/#DBNAME#/${dbname}/g" "$rc_conf"
+rc_conf="${DESTDIR}/config/config.inc.php"
+sed -i "s/#DESKEY#/${deskey}/g" ../conf/config.inc.php
+sed -i "s/#DBUSER#/${dbuser}/g" ../conf/config.inc.php
+sed -i "s/#DBPASS#/${dbpass}/g" ../conf/config.inc.php
+sed -i "s/#DBNAME#/${dbname}/g" ../conf/config.inc.php
+sudo cp ../conf/config.inc.php "$rc_conf"
 
-# Execute Roundcube update script
-sudo php "${TMPDIR}/bin/installto.sh" "$DESTDIR" --no-interaction \
-  || die "Unable to update Roundcube installation"
-(cd "$DESTDIR" && sudo php composer.phar update --quiet -n --no-dev) \
-  || die "Unable to update dependencies"
-rm -rf "$TMPDIR"
+# Fix installation directories and permissions
+sudo mkdir -p "${DESTDIR}/logs" "${DESTDIR}/temp"
+sudo chown -R www-data: "$DESTDIR"
+
+# Check if dependencies need to be updated with composer
+if [[ -f ${DESTDIR}/composer.json ]]; then
+  # TODO: update new Roundcube dependencies versions
+  exec_composer www-data "$DESTDIR" update --no-dev
+else
+  init_composer "$DESTDIR"
+fi
+
+# Install some plugins manually
+sudo rm -rf "${DESTDIR}/plugins/ldapAliasSync"
+sudo cp -r ../sources/plugins/ldapAliasSync "${DESTDIR}/plugins"
+sudo chown -R www-data: "${DESTDIR}/plugins/ldapAliasSync"
+
+# Update or install additional plugins
+exec_composer www-data "$DESTDIR" require "johndoh/contextmenu dev-release-2.1"
+exec_composer www-data "$DESTDIR" require "sblaisot/automatic_addressbook"
 
 ## Install rcmcarddav if baikal is detected
 #sudo yunohost app list -f baikal --json | grep '"installed": true'
@@ -68,10 +87,6 @@ rm -rf "$TMPDIR"
 #  mysql -u $db_user -p$db_pwd $db_user < ../sources/plugins/carddav/dbinit/mysql-drop.sql
 #  sudo sed -i "s@yuno_enable_carddav@False@g" $final_path/config/main.inc.php
 #fi
-
-# Fix installation directories and permissions
-sudo mkdir -p "${DESTDIR}/logs" "${DESTDIR}/temp"
-sudo chown -R www-data: "$DESTDIR"
 
 # Copy and set nginx configuration
 nginx_conf="/etc/nginx/conf.d/${domain}.d/${app}.conf"
