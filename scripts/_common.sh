@@ -40,40 +40,57 @@ extract_roundcube() {
     || die "Unable to extract Roundcube tarball"
   rm "$rc_tarball"
 
-  # TODO: apply patches
+  # apply patches
+  (cd "$DESTDIR" \
+   && for p in ${PKGDIR}/patches/*.patch; do patch -p1 < $p; done) \
+    || die "Unable to apply patches to Roundcube"
+
+  # copy composer.json-dist for Roundcube with complete dependencies
+  cp "${PKGDIR}/sources/composer.json-dist" "${DESTDIR}/composer.json-dist"
 }
 
-# Execute a composer command from a given directory
-# usage: composer_exec WORKDIR AS_USER COMMAND [ARG ...]
-exec_composer() {
-  local WORKDIR=$1
-  local AS_USER=$2
-  shift 2
+# Execute a command as another user
+# usage: exec_as USER COMMAND [ARG ...]
+exec_as() {
+  local USER=$1
+  shift 1
 
-  if [[ $AS_USER = $(whoami) ]]; then
-    php "${WORKDIR}/composer.phar" $@ \
-      -d "${WORKDIR}" --quiet --no-interaction
+  if [[ $USER = $(whoami) ]]; then
+    eval $@
   else
     # use sudo twice to be root and be allowed to use another user
-    sudo sudo -u "$AS_USER" php "${WORKDIR}/composer.phar" $@ \
-      -d "${WORKDIR}" --quiet --no-interaction
+    sudo sudo -u "$USER" $@
   fi
 }
 
+# Execute a composer command from a given directory
+# usage: composer_exec AS_USER WORKDIR COMMAND [ARG ...]
+exec_composer() {
+  local AS_USER=$1
+  local WORKDIR=$2
+  shift 2
+
+  exec_as "$AS_USER" COMPOSER_HOME="${WORKDIR}/.composer" \
+    php "${WORKDIR}/composer.phar" $@ \
+      -d "${WORKDIR}" --quiet --no-interaction
+}
+
 # Install and initialize Composer in the given directory
-# usage: init_composer DESTDIR
+# usage: init_composer DESTDIR [AS_USER]
 init_composer() {
   local DESTDIR=$1
+  local AS_USER=${2:-admin}
 
   # install composer
   curl -sS https://getcomposer.org/installer \
-    | php -- --quiet --install-dir="$DESTDIR" \
+    | exec_as "$AS_USER" php -- --quiet --install-dir="$DESTDIR" \
     || die "Unable to install Composer"
 
-  # copy composer.json for Roundcube with complete dependencies
-  cp "${PKGDIR}/conf/rc-complete_composer.json" "${DESTDIR}/composer.json"
+  # install composer.json
+  exec_as "$AS_USER" \
+    cp "${DESTDIR}/composer.json-dist" "${DESTDIR}/composer.json"
 
   # update dependencies to create composer.lock
-  exec_composer "$DESTDIR" admin update --no-dev \
+  exec_composer "$AS_USER" "$DESTDIR" update --no-dev \
     || die "Unable to update Roundcube core dependencies"
 }

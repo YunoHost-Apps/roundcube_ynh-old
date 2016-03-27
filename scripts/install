@@ -6,7 +6,7 @@ set -u
 # Retrieve arguments
 domain=$1
 path=${2%/}
-app=$3
+app=${!#}
 
 # Load common variables
 . ./_common.sh
@@ -55,13 +55,13 @@ sudo mv "$TMPDIR" "$DESTDIR"
 sudo mkdir -p "${DESTDIR}/logs" "${DESTDIR}/temp"
 sudo chown -R www-data: "$DESTDIR"
 
-# Install additional plugins
-exec_composer "$DESTDIR" www-data require "johndoh/contextmenu dev-release-2.1"
-exec_composer "$DESTDIR" www-data require "sblaisot/automatic_addressbook"
-
-# Install other plugins manually
+# Install some plugins manually
 sudo cp -r ../sources/plugins/ldapAliasSync "${DESTDIR}/plugins"
 sudo chown -R www-data: "${DESTDIR}/plugins/ldapAliasSync"
+
+# Install additional plugins
+exec_composer www-data "$DESTDIR" require "johndoh/contextmenu dev-release-2.1"
+exec_composer www-data "$DESTDIR" require "sblaisot/automatic_addressbook"
 
 ## Install rcmcarddav TODO: if baikal is detected
 #sudo yunohost app list -f baikal --json | grep '"installed": true'
