@@ -1,24 +1,28 @@
 #!/bin/bash
 
-# The parameter $1 is the backup directory location dedicated to the app
-# which will be compressed afterward
+# Retrieve arguments
 backup_dir=$1
-
-# The parameter $2 is theid of the app instance
 app=$2
 
-domain=$(sudo yunohost app setting $app domain)
-path=$(sudo yunohost app setting $app path)
+# Set app specific variables
+dbname=$app
+dbuser=$app
+
+# Source app helpers
+. /usr/share/yunohost/helpers
+
+# Retrieve app settings
+domain=$(ynh_app_setting_get $app domain)
+path=$(ynh_app_setting_get $app path)
+dbpass=$(ynh_app_setting_get $app mysqlpwd)
 
 # Copy the app files
-final_path=/var/www/$app
-sudo mkdir -p ${backup_dir}/var/www
-sudo cp -a $final_path "${backup_dir}/sources"
+DESTDIR="/var/www/$app"
+sudo cp -a "$DESTDIR" ./sources
 
 # Copy the conf files
-sudo cp -a /etc/php5/fpm/pool.d/$app.conf $backup_dir/php-fpm.conf
-sudo cp -a /etc/nginx/conf.d/$domain.d/$app.conf $backup_dir/nginx.conf
+sudo cp -a "/etc/nginx/conf.d/${domain}.d/${app}.conf" ./nginx.conf
+sudo cp -a "/etc/php5/fpm/pool.d/${app}.conf" ./php-fpm.conf
 
-# Backup db
-db_pwd=$(sudo yunohost app setting $app mysqlpwd)
-sudo su -c "mysqldump -u $app -p"$db_pwd" --no-create-db $app > ${backup_dir}/dump.sql"
+# Dump the database
+mysqldump -u "$dbuser" -p"$dbpass" --no-create-db "$dbname" > ./dump.sql
