@@ -1,6 +1,7 @@
 {
     "name": "Roundcube",
     "id": "roundcube",
+    "packaging_format": 1,
     "description": {
         "en": "Open Source Webmail software",
         "fr": "Webmail Open Source"
